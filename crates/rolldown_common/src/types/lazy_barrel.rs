@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// State for lazy barrel optimization
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct BarrelState {
   pub barrel_infos: FxHashMap<ModuleIdx, Option<LazyBarrelInfo>>,
   pub requested_exports: FxHashMap<ModuleIdx, ImportedExports>,
@@ -121,7 +121,7 @@ impl ImportedExports {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExportSource {
   imported: Specifier,
   record_idx: ImportRecordIdx,
@@ -130,7 +130,7 @@ pub struct ExportSource {
   is_direct_reexport: bool,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct BarrelInfo {
   /// `export const a = 1`
   pub local: Vec<CompactStr>,
@@ -271,7 +271,7 @@ impl BarrelInfo {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LazyBarrelInfo {
   pub info: BarrelInfo,
   pub remaining_imported_specifiers: FxHashMap<ImportRecordIdx, ImportedExports>,
