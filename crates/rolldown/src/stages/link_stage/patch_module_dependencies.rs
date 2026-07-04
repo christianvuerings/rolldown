@@ -123,11 +123,20 @@ impl LinkStage<'_> {
       // targets (what `meta.dependencies` holds at this point) only do so when evaluating them
       // has side effects — the same edge semantics `include_side_effectful_dependencies` uses
       // during tree-shaking and `compute_cross_chunk_links` uses when emitting bare imports.
+      //
+      // Record edges into entry modules are kept even when side-effect-free: an entry's chunk
+      // exists regardless, and letting static importers participate in its bit pattern keeps
+      // shared code co-located with the entry chunk (Rollup collapses such code-less entry
+      // facades onto the chunk holding their exports — e.g. a statically imported re-export
+      // barrel that is also a dynamic entry must not push its re-export targets into a separate
+      // chunk, see rollup's `entry-without-code-dynamic`).
       let load_dependencies: FxIndexSet<ModuleIdx> = extended_dependencies
         .iter()
         .copied()
         .chain(self.metas[module_idx].dependencies.iter().copied().filter(|dep_idx| {
-          !tree_shaking || self.module_table[*dep_idx].side_effects().has_side_effects()
+          !tree_shaking
+            || self.entries.contains_key(dep_idx)
+            || self.module_table[*dep_idx].side_effects().has_side_effects()
         }))
         .collect();
 
